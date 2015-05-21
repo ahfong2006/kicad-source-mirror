@@ -1300,6 +1300,7 @@ public:
     void StartMoveOneNodeOrSegment( TRACK* aTrack, wxDC* aDC, int aCommand );
 
     bool PlaceDraggedOrMovedTrackSegment( TRACK* Track, wxDC* DC );
+    bool PlaceRoundTrackSegment( TRACK* Track, wxDC* DC );
 
     /**
      * @todo This function is broken, because it merge segments having different
@@ -1312,6 +1313,7 @@ public:
     bool MergeCollinearTracks( TRACK* track, wxDC* DC, int end );
 
     void Start_DragTrackSegmentAndKeepSlope( TRACK* track, wxDC* DC );
+    void Start_DragRoundCorner( TRACK* track, wxDC* DC );
     void SwitchLayer( wxDC* DC, LAYER_ID layer );
 
     /**
