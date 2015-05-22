@@ -39,12 +39,13 @@
 #include <drag.h>
 #include <pcbnew_id.h>
 
+#define N_SEGMENTS 32
 
 static void Show_MoveNode( EDA_DRAW_PANEL* aPanel, wxDC* aDC, const wxPoint& aPosition,
                            bool aErase );
 static void Abort_CreateRoundTrack( EDA_DRAW_PANEL* Panel, wxDC* DC );
 
-static wxPoint PosInit, s_LastPos;
+static wxPoint s_LastPos;
 
 static PICKED_ITEMS_LIST s_ItemsListPicker;
 
@@ -145,31 +146,26 @@ void PCB_EDIT_FRAME::Start_DragRoundCorner( TRACK* aTrack, wxDC* aDC )
     if( GetBoard()->IsHighLightNetON() )
         HighLight( aDC );
 
-    PosInit = GetCrossHairPosition();
+    STATUS_FLAGS diag = aTrack->IsPointOnEnds( GetCrossHairPosition(), -1 );
 
-    if( aTrack->Type() == PCB_VIA_T )
-    {
-        aTrack->SetFlags( IS_DRAGGED | STARTPOINT | ENDPOINT );
-        AddSegmentToDragList( aTrack->GetFlags(), aTrack );
-
-        Collect_TrackSegmentsToDrag( GetBoard(), aTrack->GetStart(),
-                                     aTrack->GetLayerSet(),
-                                     aTrack->GetNetCode(), aTrack->GetWidth() / 2 );
-
-        PosInit = aTrack->GetStart();
+    //Start by breaking first segment into N_SEGMENTS different segments
+    PICKED_ITEMS_LIST itemsListPicker;
+    wxPoint start_point = aTrack->GetStart();
+    wxPoint end_point = aTrack->GetEnd();
+    for(int ii=0; ii < N_SEGMENTS; ii++){
+        double fraction_down_line = (double)(N_SEGMENTS-ii)/(N_SEGMENTS+1);
+        wxPoint pos = (start_point*(1.0-fraction_down_line)) + (end_point*fraction_down_line);
+        GetBoard()->CreateLockPoint(pos, aTrack, &itemsListPicker);
     }
-    else
-    {
-        STATUS_FLAGS diag = aTrack->IsPointOnEnds( GetCrossHairPosition(), -1 );
-        wxPoint pos;
 
-        pos = (diag & STARTPOINT) ? aTrack->GetStart() : aTrack->GetEnd();
-        Collect_TrackSegmentsToDrag( GetBoard(), pos, aTrack->GetLayerSet(),
-                                     aTrack->GetNetCode(), aTrack->GetWidth() / 2 );
-        PosInit = pos;
+    wxPoint pos;
 
-        aTrack->SetFlags( IS_DRAGGED );
-    }
+    pos = (diag & STARTPOINT) ? aTrack->GetStart() : aTrack->GetEnd();
+    //Collect_TrackSegmentsToDrag( GetBoard(), pos, aTrack->GetLayerSet(),
+    //                             aTrack->GetNetCode(), aTrack->GetWidth() / 2 );
+    wxPoint PosInit = pos;
+
+    aTrack->SetFlags( IS_DRAGGED );
 
     // Prepare the Undo command
     ITEM_PICKER picker( aTrack, UR_CHANGED );
