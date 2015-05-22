@@ -68,14 +68,14 @@ static void Abort_CreateRoundTrack( EDA_DRAW_PANEL* aPanel, wxDC* aDC )
     frame->SetCurItem( NULL );
     aPanel->SetMouseCapture( NULL, NULL );
 
-    // Undo move and redraw trace segments.
-    for( unsigned jj=0 ; jj < g_DragSegmentList.size(); jj++ )
-    {
-        TRACK* track = g_DragSegmentList[jj].m_Track;
-        g_DragSegmentList[jj].RestoreInitialValues();
-        track->SetState( IN_EDIT, false );
-        track->ClearFlags();
-    }
+    //// Undo move and redraw trace segments.
+    //for( unsigned jj=0 ; jj < s_RoundSegmentList.size(); jj++ )
+    //{
+    //    TRACK* track = s_RoundSegmentList[jj].m_Track;
+    //    s_RoundSegmentList[jj].RestoreInitialValues();
+    //    track->SetState( IN_EDIT, false );
+    //    track->ClearFlags();
+    //}
 
     // Clear the undo picker list:
     s_ItemsListPicker.ClearListAndDeleteItems();
@@ -190,7 +190,6 @@ void PCB_EDIT_FRAME::Start_DragRoundCorner( TRACK* aTrack, wxDC* aDC )
 
     STATUS_FLAGS diag = aTrack->IsPointOnEnds( GetCrossHairPosition(), -1 );
 
-    PICKED_ITEMS_LIST itemsListPicker;
     TRACK *next_segment = (diag & STARTPOINT) ? aTrack->GetTrack( GetBoard()->m_Track, NULL, ENDPOINT_START, true, false ) :
                                                 aTrack->GetTrack( GetBoard()->m_Track, NULL, ENDPOINT_END, true, false );
     //TODO: Put some error checking in here...
@@ -205,33 +204,27 @@ void PCB_EDIT_FRAME::Start_DragRoundCorner( TRACK* aTrack, wxDC* aDC )
     s_Line2Vec = TransformToAngleCoords( s_SecondSegment->GetEnd() );
     s_Line2Angle = ArcTangente( s_Line2Vec.y, s_Line2Vec.x );
 
+    // Prepare the Undo command
+    ITEM_PICKER picker( s_SecondSegment, UR_CHANGED );
+    picker.SetLink( s_SecondSegment->Clone() );
+    s_ItemsListPicker.PushItem( picker );
+    s_FirstSegment->SetStatus( 0 );
+    s_FirstSegment->ClearFlags();
+    s_SecondSegment->SetStatus( 0 );
+    s_SecondSegment->ClearFlags();
+
     //Start by breaking first segment into N_SEGMENTS different segments
     wxPoint start_point = s_FirstSegment->GetStart();
     wxPoint end_point = s_FirstSegment->GetEnd();
     for(int ii=0; ii < N_SEGMENTS; ii++){
         double fraction_down_line = (double)(N_SEGMENTS-ii)/(N_SEGMENTS+1);
         wxPoint pos = (start_point*(1.0-fraction_down_line)) + (end_point*fraction_down_line);
-        TRACK *new_track = GetBoard()->CreateLockPoint(pos, s_FirstSegment, &itemsListPicker);
+        TRACK *new_track = GetBoard()->CreateLockPoint(pos, s_FirstSegment, &s_ItemsListPicker);
         s_RoundSegmentList.push_back(new_track);
     }
+    SaveCopyInUndoList( s_ItemsListPicker, UR_UNSPECIFIED );
 
     aTrack->SetFlags( IS_DRAGGED );
-
-    // Prepare the Undo command
-    ITEM_PICKER picker( aTrack, UR_CHANGED );
-    picker.SetLink( aTrack->Clone() );
-    s_ItemsListPicker.PushItem( picker );
-
-    for( unsigned ii = 0; ii < g_DragSegmentList.size(); ii++ )
-    {
-        TRACK* draggedtrack = g_DragSegmentList[ii].m_Track;
-        picker.SetItem( draggedtrack );
-        picker.SetLink( draggedtrack->Clone() );
-        s_ItemsListPicker.PushItem( picker );
-        draggedtrack = (TRACK*) picker.GetLink();
-        draggedtrack->SetStatus( 0 );
-        draggedtrack->ClearFlags();
-    }
 
     m_canvas->SetMouseCapture( Show_MoveNode, Abort_CreateRoundTrack );
 
@@ -251,72 +244,72 @@ bool PCB_EDIT_FRAME::PlaceRoundTrackSegment( TRACK* Track, wxDC* DC )
 
     if( Track == NULL )
         return false;
-
-    int current_net_code = Track->GetNetCode();
-
-    // DRC control:
-    if( g_Drc_On )
-    {
-        errdrc = m_drc->Drc( Track, GetBoard()->m_Track );
-
-        if( errdrc == BAD_DRC )
-            return false;
-
-        // Redraw the dragged segments
-        for( unsigned ii = 0; ii < g_DragSegmentList.size(); ii++ )
-        {
-            errdrc = m_drc->Drc( g_DragSegmentList[ii].m_Track, GetBoard()->m_Track );
-
-            if( errdrc == BAD_DRC )
-                return false;
-        }
-    }
-
-    // DRC Ok: place track segments
-    Track->ClearFlags();
-    Track->SetState( IN_EDIT, false );
-
-    // Draw dragged tracks
-    for( unsigned ii = 0; ii < g_DragSegmentList.size(); ii++ )
-    {
-        Track = g_DragSegmentList[ii].m_Track;
-        Track->SetState( IN_EDIT, false );
-        Track->ClearFlags();
-
-        /* Test the connections modified by the move
-         *  (only pad connection must be tested, track connection will be
-         * tested by TestNetConnection() ) */
-        LSET layerMask( Track->GetLayer() );
-
-        Track->start = GetBoard()->GetPadFast( Track->GetStart(), layerMask );
-
-        if( Track->start )
-            Track->SetState( BEGIN_ONPAD, true );
-        else
-            Track->SetState( BEGIN_ONPAD, false );
-
-        Track->end = GetBoard()->GetPadFast( Track->GetEnd(), layerMask );
-
-        if( Track->end )
-            Track->SetState( END_ONPAD, true );
-        else
-            Track->SetState( END_ONPAD, false );
-    }
-
-    EraseDragList();
-
-    SaveCopyInUndoList( s_ItemsListPicker, UR_UNSPECIFIED );
-    s_ItemsListPicker.ClearItemsList(); // s_ItemsListPicker is no more owner of picked items
-
-    GetBoard()->PopHighLight();
-
-    OnModify();
-    m_canvas->SetMouseCapture( NULL, NULL );
-
-    if( current_net_code > 0 )
-        TestNetConnection( DC, current_net_code );
-
-    m_canvas->Refresh();
+//
+//    int current_net_code = Track->GetNetCode();
+//
+//    // DRC control:
+//    if( g_Drc_On )
+//    {
+//        errdrc = m_drc->Drc( Track, GetBoard()->m_Track );
+//
+//        if( errdrc == BAD_DRC )
+//            return false;
+//
+//        // Redraw the dragged segments
+//        for( unsigned ii = 0; ii < s_RoundSegmentList.size(); ii++ )
+//        {
+//            errdrc = m_drc->Drc( s_RoundSegmentList[ii].m_Track, GetBoard()->m_Track );
+//
+//            if( errdrc == BAD_DRC )
+//                return false;
+//        }
+//    }
+//
+//    // DRC Ok: place track segments
+//    Track->ClearFlags();
+//    Track->SetState( IN_EDIT, false );
+//
+//    // Draw dragged tracks
+//    for( unsigned ii = 0; ii < s_RoundSegmentList.size(); ii++ )
+//    {
+//        Track = s_RoundSegmentList[ii].m_Track;
+//        Track->SetState( IN_EDIT, false );
+//        Track->ClearFlags();
+//
+//        /* Test the connections modified by the move
+//         *  (only pad connection must be tested, track connection will be
+//         * tested by TestNetConnection() ) */
+//        LSET layerMask( Track->GetLayer() );
+//
+//        Track->start = GetBoard()->GetPadFast( Track->GetStart(), layerMask );
+//
+//        if( Track->start )
+//            Track->SetState( BEGIN_ONPAD, true );
+//        else
+//            Track->SetState( BEGIN_ONPAD, false );
+//
+//        Track->end = GetBoard()->GetPadFast( Track->GetEnd(), layerMask );
+//
+//        if( Track->end )
+//            Track->SetState( END_ONPAD, true );
+//        else
+//            Track->SetState( END_ONPAD, false );
+//    }
+//
+//    EraseDragList();
+//
+//    SaveCopyInUndoList( s_ItemsListPicker, UR_UNSPECIFIED );
+//    s_ItemsListPicker.ClearItemsList(); // s_ItemsListPicker is no more owner of picked items
+//
+//    GetBoard()->PopHighLight();
+//
+//    OnModify();
+//    m_canvas->SetMouseCapture( NULL, NULL );
+//
+//    if( current_net_code > 0 )
+//        TestNetConnection( DC, current_net_code );
+//
+//    m_canvas->Refresh();
 
     return true;
 }
