@@ -45,9 +45,14 @@ static void Show_MoveNode( EDA_DRAW_PANEL* aPanel, wxDC* aDC, const wxPoint& aPo
                            bool aErase );
 static void Abort_CreateRoundTrack( EDA_DRAW_PANEL* Panel, wxDC* DC );
 
-static wxPoint s_LastPos;
-
 static PICKED_ITEMS_LIST s_ItemsListPicker;
+
+static wxPoint s_PosInit;
+static TRACK *s_FirstSegment, *s_SecondSegment;
+static std::vector<TRACK*> s_RoundSegmentList;
+
+static wxPoint s_Line2Vec, s_TransformMove;
+static double s_TransformRotate, s_Line2Angle;
 
 
 /** Abort function for creating a round track corner
@@ -78,16 +83,75 @@ static void Abort_CreateRoundTrack( EDA_DRAW_PANEL* aPanel, wxDC* aDC )
     aPanel->Refresh();
 }
 
+static wxPoint TransformToAngleCoords(wxPoint in_pos){
+    wxPoint ret_val = in_pos;
+    ret_val = ret_val - s_TransformMove;
+    RotatePoint(&ret_val, s_TransformRotate);
+    return ret_val;
+}
+
+static wxPoint TransformFromAngleCoords(wxPoint in_pos){
+    wxPoint ret_val = in_pos;
+    RotatePoint(&ret_val, -s_TransformRotate);
+    ret_val = ret_val + s_TransformMove;
+    return ret_val;
+}
+
+static wxPoint GetCircleCoords(wxPoint in_pos){
+    wxPoint cursor_transformed = TransformToAngleCoords(in_pos);
+    double distance_line1 = cursor_transformed.x;
+    double distance_line2 = (double)(cursor_transformed.x) * s_Line2Vec.x + (double)(cursor_transformed.y) * s_Line2Vec.y;
+    distance_line2 /= EuclideanNorm(s_Line2Vec);
+    double chosen_distance = (distance_line1 < distance_line2) ? distance_line2 : distance_line1;
+    if(chosen_distance < 0.0) chosen_distance = 0.0;
+
+    wxPoint ret_circle_coords;
+    ret_circle_coords.x = chosen_distance;
+    ret_circle_coords.y = ret_circle_coords.x*tan(DECIDEG2RAD(s_Line2Angle/2));
+
+    return ret_circle_coords;
+}
+
+static wxPoint CircleCoord(wxPoint in_pos, double in_decideg){
+    wxPoint ret_pos;
+    ret_pos.x = in_pos.x + cosdecideg( abs(in_pos.y), in_decideg );
+    ret_pos.y = in_pos.y + sindecideg( abs(in_pos.y), in_decideg );
+    return ret_pos;
+}
+
+static void RearrangeRoundSegments(wxPoint in_circle_center){
+    double start_angle, end_angle, angle_step;
+
+    // Whether or not the circle is above or below the transformed X axis affects what angle we start and end at
+    if(in_circle_center.y < 0.0){
+        start_angle = 900.0;
+        end_angle = 2700.0 + ArcTangente(s_Line2Vec.y, s_Line2Vec.x);
+    } else {
+        start_angle = -900.0;
+        end_angle = -900.0 - (1800.0 - ArcTangente(s_Line2Vec.y, s_Line2Vec.x));
+    }
+    angle_step = ( end_angle - start_angle ) / N_SEGMENTS;
+
+    s_FirstSegment->SetEnd(TransformFromAngleCoords(CircleCoord(in_circle_center, start_angle)));
+    s_SecondSegment->SetStart(TransformFromAngleCoords(CircleCoord(in_circle_center, end_angle)));
+
+    double cur_angle = start_angle;
+    for( unsigned ii = 0; ii < s_RoundSegmentList.size(); ii++){
+        s_RoundSegmentList[ii]->SetStart(TransformFromAngleCoords(CircleCoord(in_circle_center, cur_angle)));
+        s_RoundSegmentList[ii]->SetEnd(TransformFromAngleCoords(CircleCoord(in_circle_center, cur_angle+angle_step)));
+
+        cur_angle += angle_step;
+    }
+}
+
 
 // Redraw the moved node according to the mouse cursor position
 static void Show_MoveNode( EDA_DRAW_PANEL* aPanel, wxDC* aDC, const wxPoint& aPosition,
                            bool aErase )
 {
     DISPLAY_OPTIONS* displ_opts = (DISPLAY_OPTIONS*) aPanel->GetDisplayOptions();
-    wxPoint      moveVector;
     int          tmp = displ_opts->m_DisplayPcbTrackFill;
     GR_DRAWMODE  draw_mode = GR_XOR | GR_HIGHLIGHT;
-
     displ_opts->m_DisplayPcbTrackFill = false;
 
 #ifndef USE_WX_OVERLAY
@@ -99,38 +163,16 @@ static void Show_MoveNode( EDA_DRAW_PANEL* aPanel, wxDC* aDC, const wxPoint& aPo
     // set the new track coordinates
     wxPoint Pos = aPanel->GetParent()->GetCrossHairPosition();
 
-    moveVector = Pos - s_LastPos;
-    s_LastPos  = Pos;
+    wxPoint circle_pos = GetCircleCoords(Pos);
+    RearrangeRoundSegments(circle_pos);
 
-    TRACK *track = NULL;
-
-    for( unsigned ii = 0; ii < g_DragSegmentList.size(); ii++ )
-    {
-        track = g_DragSegmentList[ii].m_Track;
-
-        if( aErase )
-            track->Draw( aPanel, aDC, draw_mode );
-
-        if( track->GetFlags() & STARTPOINT )
-            track->SetStart( track->GetStart() + moveVector );
-
-        if( track->GetFlags() & ENDPOINT )
-            track->SetEnd( track->GetEnd() + moveVector );
-
-        if( track->Type() == PCB_VIA_T )
-            track->SetEnd( track->GetStart() );
-
-        track->Draw( aPanel, aDC, draw_mode );
-    }
+    //Redraw all the current circle segments
+    for( unsigned ii = 0; ii < s_RoundSegmentList.size(); ii++ )
+        s_RoundSegmentList[ii]->Draw( aPanel, aDC, draw_mode );
 
     displ_opts->m_DisplayPcbTrackFill = tmp;
 
-    // Display track length
-    if( track )
-    {
-        PCB_BASE_FRAME* frame = (PCB_BASE_FRAME*) aPanel->GetParent();
-        frame->SetMsgPanel( track );
-    }
+
 }
 
 void PCB_EDIT_FRAME::Start_DragRoundCorner( TRACK* aTrack, wxDC* aDC )
@@ -138,7 +180,7 @@ void PCB_EDIT_FRAME::Start_DragRoundCorner( TRACK* aTrack, wxDC* aDC )
     if( !aTrack )
         return;
 
-    EraseDragList();
+    s_RoundSegmentList.clear();
 
     // Change highlighted net: the new one will be highlighted
     GetBoard()->PushHighLight();
@@ -148,22 +190,30 @@ void PCB_EDIT_FRAME::Start_DragRoundCorner( TRACK* aTrack, wxDC* aDC )
 
     STATUS_FLAGS diag = aTrack->IsPointOnEnds( GetCrossHairPosition(), -1 );
 
-    //Start by breaking first segment into N_SEGMENTS different segments
     PICKED_ITEMS_LIST itemsListPicker;
-    wxPoint start_point = aTrack->GetStart();
-    wxPoint end_point = aTrack->GetEnd();
+    TRACK *next_segment = (diag & STARTPOINT) ? aTrack->GetTrack( GetBoard()->m_Track, NULL, ENDPOINT_START, true, false ) :
+                                                aTrack->GetTrack( GetBoard()->m_Track, NULL, ENDPOINT_END, true, false );
+    //TODO: Put some error checking in here...
+    //Re-order the two converging tracks if we're selecting the startpoint
+    s_FirstSegment = (diag & STARTPOINT) ? next_segment : aTrack;
+    s_SecondSegment = (diag & STARTPOINT) ? aTrack : next_segment;
+    s_PosInit = s_FirstSegment->GetEnd();
+    s_TransformMove.x = s_PosInit.x;
+    s_TransformMove.y = s_PosInit.y;
+    s_TransformRotate = ArcTangente( (s_FirstSegment->GetStart().y - s_PosInit.y),
+                                     (s_FirstSegment->GetStart().x - s_PosInit.x) );
+    s_Line2Vec = TransformToAngleCoords( s_SecondSegment->GetEnd() );
+    s_Line2Angle = ArcTangente( s_Line2Vec.y, s_Line2Vec.x );
+
+    //Start by breaking first segment into N_SEGMENTS different segments
+    wxPoint start_point = s_FirstSegment->GetStart();
+    wxPoint end_point = s_FirstSegment->GetEnd();
     for(int ii=0; ii < N_SEGMENTS; ii++){
         double fraction_down_line = (double)(N_SEGMENTS-ii)/(N_SEGMENTS+1);
         wxPoint pos = (start_point*(1.0-fraction_down_line)) + (end_point*fraction_down_line);
-        GetBoard()->CreateLockPoint(pos, aTrack, &itemsListPicker);
+        TRACK *new_track = GetBoard()->CreateLockPoint(pos, s_FirstSegment, &itemsListPicker);
+        s_RoundSegmentList.push_back(new_track);
     }
-
-    wxPoint pos;
-
-    pos = (diag & STARTPOINT) ? aTrack->GetStart() : aTrack->GetEnd();
-    //Collect_TrackSegmentsToDrag( GetBoard(), pos, aTrack->GetLayerSet(),
-    //                             aTrack->GetNetCode(), aTrack->GetWidth() / 2 );
-    wxPoint PosInit = pos;
 
     aTrack->SetFlags( IS_DRAGGED );
 
@@ -183,7 +233,6 @@ void PCB_EDIT_FRAME::Start_DragRoundCorner( TRACK* aTrack, wxDC* aDC )
         draggedtrack->ClearFlags();
     }
 
-    s_LastPos = PosInit;
     m_canvas->SetMouseCapture( Show_MoveNode, Abort_CreateRoundTrack );
 
     GetBoard()->SetHighLightNet( aTrack->GetNetCode() );
