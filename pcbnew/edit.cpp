@@ -1202,6 +1202,52 @@ void PCB_EDIT_FRAME::Process_Special_Functions( wxCommandEvent& event )
         }
         break;
 
+    case ID_POPUP_PCB_CREATE_TRACK_SOLDER_CLEARANCE:
+        m_canvas->MoveCursorToCrossHair();
+        {
+            TRACK*  track = (TRACK*) GetScreen()->GetCurItem();
+            int net_code = track->GetNetCode();
+            LAYER_ID cur_layer = track->GetLayer();
+            LAYER_ID mask_layer;
+            if(cur_layer == B_Cu) mask_layer = B_Mask;
+            else if(cur_layer == F_Cu) mask_layer = F_Mask;
+            else break;
+
+            // First ask for the amount of desired soldermask clearance
+            std::string label = (g_UserUnit == INCHES) ? "Clearance (in inches):" : "Clearance (in mm):";
+            wxTextEntryDialog dlg( this, _( label ), _( "Create Soldermask Clearance Around Net" ), moduleName );
+
+            if( dlg.ShowModal() != wxID_OK ) break;
+
+            wxString clearanceString = dlg.GetValue();
+            clearanceString.Trim( true );
+            clearanceString.Trim( false );
+
+            double clearance;
+            if( !clearanceString.ToDouble(&clearance) ) break;
+
+            clearance = From_User_Unit( g_UserUnit, clearance );
+
+            BOARD *pcb = GetBoard();
+            PICKED_ITEMS_LIST newItemsList;
+
+            // Now loop through all tracks, creating the desired soldermask clearance for all 
+            for( TRACK* track = pcb->m_Track;  track;  track = track->Next() ) {
+                if( track->GetNetCode() == net_code ) {
+                    DRAWSEGMENT *new_soldermask_line = new DRAWSEGMENT( pcb );
+                    new_soldermask_line->SetStart( track->GetStart() );
+                    new_soldermask_line->SetEnd( track->GetEnd() );
+                    new_soldermask_line->SetWidth( track->GetWidth() + clearance * 2 );
+                    new_soldermask_line->SetLayer( pcb->GetLayerID( mask_layer ) );
+                    pcb->Add( new_soldermask_line );
+                    newItemsList.PushItem( new_soldermask_line );
+                }
+            }
+
+            SaveCopyInUndoList( newItemsList, UR_NEW );
+        }
+        break;
+
     case ID_POPUP_PCB_MOVE_EXACT:
         moveExact();
         break;
