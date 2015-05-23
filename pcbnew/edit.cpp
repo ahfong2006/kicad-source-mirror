@@ -48,6 +48,7 @@
 #include <class_track.h>
 #include <class_zone.h>
 #include <class_pcb_text.h>
+#include <class_drawsegment.h>
 #include <modview_frame.h>
 #include <class_pcb_layer_box_selector.h>
 #include <dialog_drc.h>
@@ -1214,12 +1215,13 @@ void PCB_EDIT_FRAME::Process_Special_Functions( wxCommandEvent& event )
             else break;
 
             // First ask for the amount of desired soldermask clearance
+            wxString clearanceString;
             std::string label = (g_UserUnit == INCHES) ? "Clearance (in inches):" : "Clearance (in mm):";
-            wxTextEntryDialog dlg( this, _( label ), _( "Create Soldermask Clearance Around Net" ), moduleName );
+            wxTextEntryDialog dlg( this, _( label ), _( "Create Soldermask Clearance Around Net" ), clearanceString );
 
             if( dlg.ShowModal() != wxID_OK ) break;
 
-            wxString clearanceString = dlg.GetValue();
+            clearanceString = dlg.GetValue();
             clearanceString.Trim( true );
             clearanceString.Trim( false );
 
@@ -1234,17 +1236,19 @@ void PCB_EDIT_FRAME::Process_Special_Functions( wxCommandEvent& event )
             // Now loop through all tracks, creating the desired soldermask clearance for all 
             for( TRACK* track = pcb->m_Track;  track;  track = track->Next() ) {
                 if( track->GetNetCode() == net_code ) {
-                    DRAWSEGMENT *new_soldermask_line = new DRAWSEGMENT( pcb );
+                    DRAWSEGMENT *new_soldermask_line = new DRAWSEGMENT( pcb, PCB_LINE_T );
+                    new_soldermask_line->SetFlags( IS_NEW );
+                    new_soldermask_line->SetLayer( mask_layer );
+                    new_soldermask_line->SetWidth( track->GetWidth() + clearance * 2 );
                     new_soldermask_line->SetStart( track->GetStart() );
                     new_soldermask_line->SetEnd( track->GetEnd() );
-                    new_soldermask_line->SetWidth( track->GetWidth() + clearance * 2 );
-                    new_soldermask_line->SetLayer( pcb->GetLayerID( mask_layer ) );
                     pcb->Add( new_soldermask_line );
                     newItemsList.PushItem( new_soldermask_line );
                 }
             }
 
             SaveCopyInUndoList( newItemsList, UR_NEW );
+            m_canvas->Refresh();
         }
         break;
 
