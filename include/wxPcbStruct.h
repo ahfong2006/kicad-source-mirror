@@ -180,6 +180,8 @@ protected:
      */
     virtual bool isAutoSaveRequired() const;
 
+    void stitchZone( wxDC* aDC, ZONE_CONTAINER* aZone, int viaSpacing, int viaDiameter, int viaDrill );
+
     /**
      * Function duplicateZone
      * duplicates the given zone.

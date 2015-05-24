@@ -34,7 +34,8 @@
 DIALOG_ZONE_VIA_STITCHING::ZONE_VIA_STITCHING_OPTIONS DIALOG_ZONE_VIA_STITCHING::m_options;
 
 
-DIALOG_ZONE_VIA_STITCHING::DIALOG_ZONE_VIA_STITCHING( PCB_BASE_FRAME* aParent ):
+DIALOG_ZONE_VIA_STITCHING::DIALOG_ZONE_VIA_STITCHING( PCB_BASE_FRAME* aParent, int& viaSpacing, int& viaDiameter, int& viaDrill ):
+    m_viaSpacing(viaSpacing), m_viaDiameter(viaDiameter), m_viaDrill(viaDrill), 
     DIALOG_ZONE_VIA_STITCHING_BASE( aParent )
 {
     // set the unit labels
@@ -70,15 +71,16 @@ void DIALOG_ZONE_VIA_STITCHING::OnCancelClick( wxCommandEvent& event )
 
 void DIALOG_ZONE_VIA_STITCHING::OnOkClick( wxCommandEvent& event )
 {
-    if ( ok )
-    {
-        // save the settings
-        m_spacingEntry->GetValue().ToDouble( &m_options.viaSpacing );
-        m_diameterEntry->GetValue().ToDouble( &m_options.viaDiameter );
-        m_drillEntry->GetValue().ToDouble( &m_options.viaDrill );
+    m_viaSpacing = ValueFromTextCtrl( *m_spacingEntry );
+    m_viaDiameter = ValueFromTextCtrl( *m_diameterEntry );
+    m_viaDrill = ValueFromTextCtrl( *m_drillEntry );
 
-        EndModal( wxID_OK);
-    }
+    // save the settings
+    m_spacingEntry->GetValue().ToDouble( &m_options.viaSpacing );
+    m_diameterEntry->GetValue().ToDouble( &m_options.viaDiameter );
+    m_drillEntry->GetValue().ToDouble( &m_options.viaDrill );
+
+    EndModal( wxID_OK);
 }
 
 

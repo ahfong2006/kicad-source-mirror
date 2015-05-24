@@ -33,9 +33,13 @@ class DIALOG_ZONE_VIA_STITCHING : public DIALOG_ZONE_VIA_STITCHING_BASE
 {
 private:
 
+    int& m_viaSpacing;
+    int& m_viaDiameter;
+    int& m_viaDrill;
+
 public:
     // Constructor and destructor
-    DIALOG_ZONE_VIA_STITCHING( PCB_BASE_FRAME* aParent );
+    DIALOG_ZONE_VIA_STITCHING( PCB_BASE_FRAME* aParent, int& viaSpacing, int& viaDiameter, int& viaDrill );
     ~DIALOG_ZONE_VIA_STITCHING();
 
 private:

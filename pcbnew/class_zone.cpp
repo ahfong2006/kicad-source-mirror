@@ -566,6 +566,35 @@ bool ZONE_CONTAINER::HitTestFilledArea( const wxPoint& aRefPos ) const
 }
 
 
+bool ZONE_CONTAINER::HitTestFilledAreaWithClearance( const wxPoint& aRefPos, int minDist ) const
+{
+    unsigned indexstart = 0, indexend;
+    bool     inside     = false;
+
+    for( indexend = 0; indexend < m_FilledPolysList.GetCornersCount(); indexend++ )
+    {
+        if( m_FilledPolysList.IsEndContour( indexend ) )       // end of a filled sub-area found
+        {
+            if( TestPointInsidePolygon( m_FilledPolysList, indexstart, indexend,
+                                        aRefPos.x, aRefPos.y ) )
+            {
+                inside = true;
+                for( int ii = indexstart, jj = indexend; ii < indexend; jj = ii, ii++){
+                    if( TestSegmentHit( m_FilledPolysList[ii], m_FilledPolysList[jj], aRefPos, minDist ) )
+                        inside = false;
+                }
+                if( inside == true) break;
+            }
+
+            // Prepare test of next area which starts after the current index end (if exists)
+            indexstart = indexend + 1;
+        }
+    }
+
+    return inside;
+}
+
+
 void ZONE_CONTAINER::GetMsgPanelInfo( std::vector< MSG_PANEL_ITEM >& aList )
 {
     wxString msg;

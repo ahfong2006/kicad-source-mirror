@@ -105,9 +105,46 @@ void PCB_EDIT_FRAME::Add_Zone_Cutout( wxDC* DC, ZONE_CONTAINER* aZone )
     OnSelectTool( evt );
 }
 
-void PCB_EDIT_FRAME::duplicateZone( wxDC* aDC, ZONE_CONTAINER* aZone )
+void PCB_EDIT_FRAME::stitchZone( wxDC* aDC, ZONE_CONTAINER* aZone, int viaSpacing, int viaDiameter, int viaDrill )
 {
+    bool initially_filled = aZone->IsFilled();
 
+    //First fill the zone so we know whether each stitching via is necessary
+    if( !initially_filled ){
+        Fill_Zone( aZone );
+    }
+
+    //Then get a bounding box to limit the stitching area
+    EDA_RECT zone_bounding_box = aZone->GetBoundingBox();
+
+    //Now start placing stitching vias one at a time, removing them if they don't fall totally within the zone or have some other DRC conflict
+    for(int x = zone_bounding_box.GetX(); x < zone_bounding_box.GetX() + zone_bounding_box.GetWidth(); x += viaSpacing){
+        for(int y = zone_bounding_box.GetY(); y < zone_boundign_box.GetY() + zone_bounding_box.GetHeight(); y += viaSpacing){
+            wxPoint cur_point(x, y);
+             //If the via is inside the zone and within the filled area, still need to make sure the annular ring isn't leaving the filled area
+            if( aZone->HitTestInsideZone( cur_point ) && aZone->HitTestFilledAreaWithClearance( cur_point, viaDiameter / 2 ) ){
+
+                //Construct and place the new via
+                VIA *new_via = new VIA( GetBoard() );
+                new_via->m_Status |= NET_LOCKED;
+                new_via->SetPosition( cur_point );
+                new_via->SetDrill( viaDrill );
+                new_via->SetWidth( viaDiameter );
+                new_via->SetNetCode( aZone->GetNetCode() );
+                GetBoard()->Add( new_via );
+
+                //Lastly check to make sure the via isn't disobeying any DRC checks
+                if(!m_drc->doTrackDrc( new_via, GetBoard()->m_Track, true ))
+                    GetBoard()->Delete( new_via );
+
+            }
+        }
+    }
+
+    //Undo filling if it was done just to place stitched vias
+    if( !initially_filled ){
+        aZone->UnFill();
+    }
 }
 
 

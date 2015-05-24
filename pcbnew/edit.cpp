@@ -120,6 +120,7 @@ void PCB_EDIT_FRAME::Process_Special_Functions( wxCommandEvent& event )
     case ID_POPUP_PCB_DELETE_TRACK:
     case ID_POPUP_PCB_DELETE_TRACKNET:
     case ID_POPUP_PCB_FILL_ZONE:
+    case ID_POPUP_PCB_ZONE_VIA_STITCH:
     case ID_POPUP_PCB_SELECT_LAYER:
     case ID_POPUP_PCB_SELECT_CU_LAYER:
     case ID_POPUP_PCB_SELECT_LAYER_PAIR:
@@ -548,7 +549,21 @@ void PCB_EDIT_FRAME::Process_Special_Functions( wxCommandEvent& event )
     case ID_POPUP_PCB_ZONE_VIA_STITCH:
         {
             ZONE_CONTAINER* zone = (ZONE_CONTAINER*) GetCurItem();
-            stitchZone( &dc, zone );
+            int via_spacing, via_diameter, via_drill;
+            DIALOG_ZONE_VIA_STITCHING dialog( this, via_spacing, via_diameter, via_drill );
+            int ret = dialog.ShowModal();
+        
+            if( ret == wxID_OK )
+            {
+                if( BOARD_ITEM* item = GetScreen()->GetCurItem() )
+                {
+                    stitchZone( &dc, zone, via_spacing, via_diameter, via_drill );
+                    m_canvas->Refresh();
+                }
+            }
+        
+            m_canvas->MoveCursorToCrossHair();
+
         }
 
         break;
