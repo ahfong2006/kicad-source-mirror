@@ -545,6 +545,14 @@ void PCB_EDIT_FRAME::Process_Special_Functions( wxCommandEvent& event )
         Add_Zone_Cutout( &dc, (ZONE_CONTAINER*) GetCurItem() );
         break;
 
+    case ID_POPUP_PCB_ZONE_VIA_STITCH:
+        {
+            ZONE_CONTAINER* zone = (ZONE_CONTAINER*) GetCurItem();
+            stitchZone( &dc, zone );
+        }
+
+        break;
+
     case ID_POPUP_PCB_DELETE_ZONE_CONTAINER:
         // Force the main contour selection, to remove the entire zone:
         ((ZONE_CONTAINER*) GetCurItem())->SetSelectedCorner( 0 );
