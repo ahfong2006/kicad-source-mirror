@@ -121,7 +121,9 @@ void PCB_EDIT_FRAME::stitchZone( wxDC* aDC, ZONE_CONTAINER* aZone, int viaSpacin
     for(int x = zone_bounding_box.GetX(); x < zone_bounding_box.GetX() + zone_bounding_box.GetWidth(); x += viaSpacing){
         for(int y = zone_bounding_box.GetY(); y < zone_bounding_box.GetY() + zone_bounding_box.GetHeight(); y += viaSpacing){
             wxPoint cur_point(x, y);
-             //If the via is inside the zone and within the filled area, still need to make sure the annular ring isn't leaving the filled area
+            std::string blah = GetBoard()->FormatInternalUnits(cur_point);
+
+            //If the via is inside the zone and within the filled area, still need to make sure the annular ring isn't leaving the filled area
             if( aZone->HitTestInsideZone( cur_point ) && aZone->HitTestFilledAreaWithClearance( cur_point, viaDiameter / 2 ) ){
 
                 //Construct and place the new via
@@ -134,9 +136,9 @@ void PCB_EDIT_FRAME::stitchZone( wxDC* aDC, ZONE_CONTAINER* aZone, int viaSpacin
                 GetBoard()->Add( new_via );
 
                 //Lastly check to make sure the via isn't disobeying any DRC checks
-                if( m_drc->DrcBlind( new_via, GetBoard()->m_Track ) == BAD_DRC )
+                if( m_drc->DrcBlind( new_via, GetBoard()->m_Track ) == BAD_DRC ){
                     GetBoard()->Delete( new_via );
-
+                }
             }
         }
     }
@@ -145,6 +147,8 @@ void PCB_EDIT_FRAME::stitchZone( wxDC* aDC, ZONE_CONTAINER* aZone, int viaSpacin
     if( !initially_filled ){
         aZone->UnFill();
     }
+
+    OnModify();
 }
 
 

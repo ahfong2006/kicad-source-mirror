@@ -565,6 +565,35 @@ bool ZONE_CONTAINER::HitTestFilledArea( const wxPoint& aRefPos ) const
     return m_FilledPolysList.Contains( VECTOR2I( aRefPos.x, aRefPos.y ) );
 }
 
+bool ZONE_CONTAINER::SegmentIsInternalZoneEdge( unsigned firstPointIdx, unsigned secondPointIdx ) 
+{
+    //TODO: This isn't guaranteed to work all the time, but will based on the current implementation.  
+    //   Things will break if an internal segment is bisected in one polygon and not another
+    wxPoint *first_point = &m_FilledPolysList[firstPointIdx];
+    wxPoint *second_point = &m_FilledPolysList[secondPointIdx];
+
+    //Loop through all polygons' edges to see if there are any others which share the same edge as those listed
+    unsigned indexstart = 0, indexend;
+    for( indexend = 0; indexend < m_FilledPolysList.GetCornersCount(); indexend++ )
+    {
+        if( m_FilledPolysList.IsEndContour( indexend ) )
+        {
+            for( unsigned ii = indexstart, jj = indexend; ii < indexend; jj = ii, ii++){
+                wxPoint *cand_first = &m_FilledPolysList[ii];
+                wxPoint *cand_second = &m_FilledPolysList[jj];
+                if( ( ii != firstPointIdx && jj != firstPointIdx ) && 
+                    ( ( *cand_first == *first_point && *cand_second == *second_point ) ||
+                    ( *cand_first == *second_point && *cand_second == *first_point ) ) ) {
+                      return true;
+                  }
+            }
+
+            // Prepare test of next area which starts after the current index end (if exists)
+            indexstart = indexend + 1;
+        }
+    }
+    return false;
+}
 
 bool ZONE_CONTAINER::HitTestFilledAreaWithClearance( const wxPoint& aRefPos, int minDist )
 {
@@ -580,8 +609,9 @@ bool ZONE_CONTAINER::HitTestFilledAreaWithClearance( const wxPoint& aRefPos, int
             {
                 inside = true;
                 for( unsigned ii = indexstart, jj = indexend; ii < indexend; jj = ii, ii++){
-                    if( TestSegmentHit( aRefPos, m_FilledPolysList[ii], m_FilledPolysList[jj], minDist ) )
+                    if( TestSegmentHit( aRefPos, m_FilledPolysList[ii], m_FilledPolysList[jj], minDist ) && !SegmentIsInternalZoneEdge(ii, jj) ){
                         inside = false;
+                    }
                 }
                 if( inside == true) break;
             }
