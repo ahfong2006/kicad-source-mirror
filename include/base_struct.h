@@ -149,6 +149,8 @@ public:
 #define DP_COUPLED     (1 << 27)   ///< item is coupled with another item making a differential pair
                                   ///< (applies to segments only)
 
+#define NET_LOCKED     (1 << 28)   ///< Pcbnew: object locked to the net it is assigned
+
 #define EDA_ITEM_ALL_FLAGS -1
 
 typedef unsigned STATUS_FLAGS;

@@ -16,6 +16,19 @@ DIALOG_NET_VIA_SHIELDING_BASE::DIALOG_NET_VIA_SHIELDING_BASE( wxWindow* parent, 
 	wxBoxSizer* bMainSizer;
 	bMainSizer = new wxBoxSizer( wxVERTICAL );
 	
+	wxBoxSizer* bSizer6;
+	bSizer6 = new wxBoxSizer( wxVERTICAL );
+	
+	m_shieldingNetLabel = new wxStaticText( this, wxID_ANY, _("Shielding Net:"), wxDefaultPosition, wxSize( -1,-1 ), 0 );
+	m_shieldingNetLabel->Wrap( -1 );
+	bSizer6->Add( m_shieldingNetLabel, 0, wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_CENTER_HORIZONTAL, 5 );
+	
+	m_netSelection = new wxListBox( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, NULL, 0 ); 
+	bSizer6->Add( m_netSelection, 1, wxALL|wxEXPAND, 5 );
+	
+	
+	bMainSizer->Add( bSizer6, 1, wxEXPAND, 5 );
+	
 	wxFlexGridSizer* fgSizer2;
 	fgSizer2 = new wxFlexGridSizer( 0, 3, 0, 0 );
 	fgSizer2->AddGrowableCol( 1 );

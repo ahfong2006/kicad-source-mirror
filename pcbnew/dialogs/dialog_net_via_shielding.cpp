@@ -34,8 +34,9 @@
 DIALOG_NET_VIA_SHIELDING::ZONE_NET_SHIELDING_OPTIONS DIALOG_NET_VIA_SHIELDING::m_options;
 
 
-DIALOG_NET_VIA_SHIELDING::DIALOG_NET_VIA_SHIELDING( PCB_BASE_FRAME* aParent, int& viaStandoff, int& viaSpacing, int& viaDiameter, int& viaDrill ):
+DIALOG_NET_VIA_SHIELDING::DIALOG_NET_VIA_SHIELDING( PCB_BASE_FRAME* aParent, int& shieldingNetCode, int& viaStandoff, int& viaSpacing, int& viaDiameter, int& viaDrill ):
     DIALOG_NET_VIA_SHIELDING_BASE( aParent ),
+    m_shieldingNetCode(shieldingNetCode),
     m_viaStandoff(viaStandoff), m_viaSpacing(viaSpacing), 
     m_viaDiameter(viaDiameter), m_viaDrill(viaDrill)
 {
@@ -46,9 +47,16 @@ DIALOG_NET_VIA_SHIELDING::DIALOG_NET_VIA_SHIELDING( PCB_BASE_FRAME* aParent, int
     m_drillUnit->SetLabelText( GetAbbreviatedUnitsLabel( g_UserUnit ) );
 
     // tabbing goes through the entries in sequence
+    m_standoffEntry->MoveAfterInTabOrder( m_shieldingNetEntry );
     m_spacingEntry->MoveAfterInTabOrder( m_standoffEntry );
     m_diameterEntry->MoveAfterInTabOrder( m_spacingEntry );
     m_drillEntry->MoveAfterInTabOrder( m_diameterEntry );
+
+    wxArrayString   listNetName;
+    m_Parent->GetBoard()->SortedNetnamesList( listNetName, m_NetSortingByPadCount );
+    m_netSelection->Clear();
+    m_netSelection->InsertItems( listNetName, 0 );
+    m_netSelection->SetSelection( 0 );
 
     // and set up the entries according to the saved options
     m_standoffEntry->SetValue( wxString::FromDouble( m_options.viaStandoff ) );
@@ -75,18 +83,20 @@ void DIALOG_NET_VIA_SHIELDING::OnCancelClick( wxCommandEvent& event )
 
 void DIALOG_NET_VIA_SHIELDING::OnOkClick( wxCommandEvent& event )
 {
+    m_shieldingNetCode = m_Parent->GetBoard()->FindNet( m_netSelection->GetString( m_netSelection->GetSelection() ) );
     m_viaStandoff = ValueFromTextCtrl( *m_standoffEntry );
     m_viaSpacing = ValueFromTextCtrl( *m_spacingEntry );
     m_viaDiameter = ValueFromTextCtrl( *m_diameterEntry );
     m_viaDrill = ValueFromTextCtrl( *m_drillEntry );
 
     // save the settings
+    m_options.shieldingNetCode = m_netSelection->GetSelection();
     m_standoffEntry->GetValue().ToDouble( &m_options.viaStandoff );
     m_spacingEntry->GetValue().ToDouble( &m_options.viaSpacing );
     m_diameterEntry->GetValue().ToDouble( &m_options.viaDiameter );
     m_drillEntry->GetValue().ToDouble( &m_options.viaDrill );
 
-    EndModal( wxID_OK);
+    EndModal( wxID_OK );
 }
 
 

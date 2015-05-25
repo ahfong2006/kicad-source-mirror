@@ -20,8 +20,9 @@ class DIALOG_SHIM;
 #include <wx/font.h>
 #include <wx/colour.h>
 #include <wx/settings.h>
-#include <wx/textctrl.h>
+#include <wx/listbox.h>
 #include <wx/sizer.h>
+#include <wx/textctrl.h>
 #include <wx/statline.h>
 #include <wx/button.h>
 #include <wx/dialog.h>
@@ -37,6 +38,8 @@ class DIALOG_NET_VIA_SHIELDING_BASE : public DIALOG_SHIM
 	private:
 	
 	protected:
+		wxStaticText* m_shieldingNetLabel;
+		wxListBox* m_netSelection;
 		wxStaticText* m_standoffLabel;
 		wxTextCtrl* m_standoffEntry;
 		wxStaticText* m_standoffUnit;
@@ -63,7 +66,7 @@ class DIALOG_NET_VIA_SHIELDING_BASE : public DIALOG_SHIM
 	
 	public:
 		
-		DIALOG_NET_VIA_SHIELDING_BASE( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Net Via Shielding"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 294,242 ), long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER ); 
+		DIALOG_NET_VIA_SHIELDING_BASE( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("Net Via Shielding"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 300,363 ), long style = wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER ); 
 		~DIALOG_NET_VIA_SHIELDING_BASE();
 	
 };
