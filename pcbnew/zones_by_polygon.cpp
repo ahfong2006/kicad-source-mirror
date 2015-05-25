@@ -128,7 +128,7 @@ void PCB_EDIT_FRAME::stitchZone( wxDC* aDC, ZONE_CONTAINER* aZone, int viaSpacin
 
                 //Construct and place the new via
                 VIA *new_via = new VIA( GetBoard() );
-                new_via->SetStatus( NET_LOCKED );
+                new_via->SetState( NET_LOCKED, true );
                 new_via->SetPosition( cur_point );
                 new_via->SetDrill( viaDrill );
                 new_via->SetWidth( viaDiameter );
