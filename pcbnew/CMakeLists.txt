@@ -120,6 +120,8 @@ set( PCBNEW_DIALOGS
     dialogs/dialog_pns_diff_pair_dimensions_base.cpp
     dialogs/dialog_pns_length_tuning_settings.cpp
     dialogs/dialog_pns_length_tuning_settings_base.cpp
+    dialogs/dialog_net_via_shielding.cpp
+    dialogs/dialog_net_via_shielding_base.cpp
     dialogs/dialog_non_copper_zones_properties.cpp
     dialogs/dialog_non_copper_zones_properties_base.cpp
     dialogs/dialog_pad_properties.cpp
