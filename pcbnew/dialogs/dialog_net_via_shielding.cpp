@@ -34,20 +34,24 @@
 DIALOG_NET_VIA_SHIELDING::ZONE_NET_SHIELDING_OPTIONS DIALOG_NET_VIA_SHIELDING::m_options;
 
 
-DIALOG_NET_VIA_SHIELDING::DIALOG_NET_VIA_SHIELDING( PCB_BASE_FRAME* aParent, int& viaSpacing, int& viaDiameter, int& viaDrill ):
+DIALOG_NET_VIA_SHIELDING::DIALOG_NET_VIA_SHIELDING( PCB_BASE_FRAME* aParent, int& viaStandoff, int& viaSpacing, int& viaDiameter, int& viaDrill ):
     DIALOG_NET_VIA_SHIELDING_BASE( aParent ),
-    m_viaSpacing(viaSpacing), m_viaDiameter(viaDiameter), m_viaDrill(viaDrill)
+    m_viaStandoff(viaStandoff), m_viaSpacing(viaSpacing), 
+    m_viaDiameter(viaDiameter), m_viaDrill(viaDrill)
 {
     // set the unit labels
+    m_standoffUnit->SetLabelText( GetAbbreviatedUnitsLabel( g_UserUnit ) );
     m_spacingUnit->SetLabelText( GetAbbreviatedUnitsLabel( g_UserUnit ) );
     m_diameterUnit->SetLabelText( GetAbbreviatedUnitsLabel( g_UserUnit ) );
     m_drillUnit->SetLabelText( GetAbbreviatedUnitsLabel( g_UserUnit ) );
 
     // tabbing goes through the entries in sequence
+    m_spacingEntry->MoveAfterInTabOrder( m_standoffEntry );
     m_diameterEntry->MoveAfterInTabOrder( m_spacingEntry );
     m_drillEntry->MoveAfterInTabOrder( m_diameterEntry );
 
     // and set up the entries according to the saved options
+    m_standoffEntry->SetValue( wxString::FromDouble( m_options.viaStandoff ) );
     m_spacingEntry->SetValue( wxString::FromDouble( m_options.viaSpacing ) );
     m_diameterEntry->SetValue( wxString::FromDouble( m_options.viaDiameter ) );
     m_drillEntry->SetValue( wxString::FromDouble( m_options.viaDrill ) );
@@ -71,11 +75,13 @@ void DIALOG_NET_VIA_SHIELDING::OnCancelClick( wxCommandEvent& event )
 
 void DIALOG_NET_VIA_SHIELDING::OnOkClick( wxCommandEvent& event )
 {
+    m_viaStandoff = ValueFromTextCtrl( *m_standoffEntry );
     m_viaSpacing = ValueFromTextCtrl( *m_spacingEntry );
     m_viaDiameter = ValueFromTextCtrl( *m_diameterEntry );
     m_viaDrill = ValueFromTextCtrl( *m_drillEntry );
 
     // save the settings
+    m_standoffEntry->GetValue().ToDouble( &m_options.viaStandoff );
     m_spacingEntry->GetValue().ToDouble( &m_options.viaSpacing );
     m_diameterEntry->GetValue().ToDouble( &m_options.viaDiameter );
     m_drillEntry->GetValue().ToDouble( &m_options.viaDrill );

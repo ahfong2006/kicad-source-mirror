@@ -33,13 +33,14 @@ class DIALOG_NET_VIA_SHIELDING : public DIALOG_NET_VIA_SHIELDING_BASE
 {
 private:
 
+    int& m_viaStandoff;
     int& m_viaSpacing;
     int& m_viaDiameter;
     int& m_viaDrill;
 
 public:
     // Constructor and destructor
-    DIALOG_NET_VIA_SHIELDING( PCB_BASE_FRAME* aParent, int& viaSpacing, int& viaDiameter, int& viaDrill );
+    DIALOG_NET_VIA_SHIELDING( PCB_BASE_FRAME* aParent, int& viaStandoff, int& viaSpacing, int& viaDiameter, int& viaDrill );
     ~DIALOG_NET_VIA_SHIELDING();
 
 private:
@@ -57,11 +58,13 @@ private:
      */
     struct ZONE_NET_SHIELDING_OPTIONS
     {
+        double  viaStandoff;
         double  viaSpacing;
         double  viaDiameter;
         double  viaDrill;
 
         ZONE_NET_SHIELDING_OPTIONS():
+            viaStandoff(0),
             viaSpacing(0),
             viaDiameter(0),
             viaDrill(0)
