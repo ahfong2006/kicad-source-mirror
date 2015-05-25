@@ -119,14 +119,14 @@ void PCB_EDIT_FRAME::stitchZone( wxDC* aDC, ZONE_CONTAINER* aZone, int viaSpacin
 
     //Now start placing stitching vias one at a time, removing them if they don't fall totally within the zone or have some other DRC conflict
     for(int x = zone_bounding_box.GetX(); x < zone_bounding_box.GetX() + zone_bounding_box.GetWidth(); x += viaSpacing){
-        for(int y = zone_bounding_box.GetY(); y < zone_boundign_box.GetY() + zone_bounding_box.GetHeight(); y += viaSpacing){
+        for(int y = zone_bounding_box.GetY(); y < zone_bounding_box.GetY() + zone_bounding_box.GetHeight(); y += viaSpacing){
             wxPoint cur_point(x, y);
              //If the via is inside the zone and within the filled area, still need to make sure the annular ring isn't leaving the filled area
             if( aZone->HitTestInsideZone( cur_point ) && aZone->HitTestFilledAreaWithClearance( cur_point, viaDiameter / 2 ) ){
 
                 //Construct and place the new via
                 VIA *new_via = new VIA( GetBoard() );
-                new_via->m_Status |= NET_LOCKED;
+                new_via->SetStatus( NET_LOCKED );
                 new_via->SetPosition( cur_point );
                 new_via->SetDrill( viaDrill );
                 new_via->SetWidth( viaDiameter );
@@ -134,7 +134,7 @@ void PCB_EDIT_FRAME::stitchZone( wxDC* aDC, ZONE_CONTAINER* aZone, int viaSpacin
                 GetBoard()->Add( new_via );
 
                 //Lastly check to make sure the via isn't disobeying any DRC checks
-                if(!m_drc->doTrackDrc( new_via, GetBoard()->m_Track, true ))
+                if( m_drc->DrcBlind( new_via, GetBoard()->m_Track ) == BAD_DRC )
                     GetBoard()->Delete( new_via );
 
             }

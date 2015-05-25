@@ -55,6 +55,7 @@
 #include <invoke_pcb_dialog.h>
 
 #include <dialog_move_exact.h>
+#include <dialog_zone_via_stitching.h>
 #include <dialog_create_array.h>
 
 #include <tool/tool_manager.h>

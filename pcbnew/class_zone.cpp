@@ -566,7 +566,7 @@ bool ZONE_CONTAINER::HitTestFilledArea( const wxPoint& aRefPos ) const
 }
 
 
-bool ZONE_CONTAINER::HitTestFilledAreaWithClearance( const wxPoint& aRefPos, int minDist ) const
+bool ZONE_CONTAINER::HitTestFilledAreaWithClearance( const wxPoint& aRefPos, int minDist )
 {
     unsigned indexstart = 0, indexend;
     bool     inside     = false;
@@ -579,8 +579,8 @@ bool ZONE_CONTAINER::HitTestFilledAreaWithClearance( const wxPoint& aRefPos, int
                                         aRefPos.x, aRefPos.y ) )
             {
                 inside = true;
-                for( int ii = indexstart, jj = indexend; ii < indexend; jj = ii, ii++){
-                    if( TestSegmentHit( m_FilledPolysList[ii], m_FilledPolysList[jj], aRefPos, minDist ) )
+                for( unsigned ii = indexstart, jj = indexend; ii < indexend; jj = ii, ii++){
+                    if( TestSegmentHit( aRefPos, m_FilledPolysList[ii], m_FilledPolysList[jj], minDist ) )
                         inside = false;
                 }
                 if( inside == true) break;

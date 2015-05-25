@@ -35,8 +35,8 @@ DIALOG_ZONE_VIA_STITCHING::ZONE_VIA_STITCHING_OPTIONS DIALOG_ZONE_VIA_STITCHING:
 
 
 DIALOG_ZONE_VIA_STITCHING::DIALOG_ZONE_VIA_STITCHING( PCB_BASE_FRAME* aParent, int& viaSpacing, int& viaDiameter, int& viaDrill ):
-    m_viaSpacing(viaSpacing), m_viaDiameter(viaDiameter), m_viaDrill(viaDrill), 
-    DIALOG_ZONE_VIA_STITCHING_BASE( aParent )
+    DIALOG_ZONE_VIA_STITCHING_BASE( aParent ),
+    m_viaSpacing(viaSpacing), m_viaDiameter(viaDiameter), m_viaDrill(viaDrill)
 {
     // set the unit labels
     m_spacingUnit->SetLabelText( GetAbbreviatedUnitsLabel( g_UserUnit ) );

@@ -248,7 +248,7 @@ public:
      */
     bool HitTestFilledArea( const wxPoint& aRefPos ) const;
 
-    bool HitTestFilledAreaWithClearance( const wxPoint& aRefPos, in minDist ) const;
+    bool HitTestFilledAreaWithClearance( const wxPoint& aRefPos, int minDist );
 
      /**
      * Function TransformSolidAreasShapesToPolygonSet
