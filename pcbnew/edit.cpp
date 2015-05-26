@@ -1205,7 +1205,6 @@ void PCB_EDIT_FRAME::Process_Special_Functions( wxCommandEvent& event )
         break;
 
     case ID_POPUP_PCB_PLACE_NET_SHIELDING:
-        //TODO: Add code here
         m_canvas->MoveCursorToCrossHair();
         {
             TRACK*  track = (TRACK*) GetScreen()->GetCurItem();
@@ -1218,22 +1217,18 @@ void PCB_EDIT_FRAME::Process_Special_Functions( wxCommandEvent& event )
 
             if( ret == wxID_OK ){
                 //Figure out where the start and end are to the selected track
-                int numSegments;
                 double traceLen;
-                TRACK *startTrace = GetBoard()->MarkTrace(track, &numSegments, &traceLen, NULL, true );
+                std::vector< wxPoint > tracePath = GetBoard()->GetTracePath( track, &traceLen );
                 double cumulativeLen = 0.0;
-                printf("numSegments = %d, traceLen = %f\n",numSegments, traceLen);
-                for( double dist = 0.0; dist < traceLen; dist += via_spacing ){
+                int pathIdx = 0;
+                for( double dist = 0.0; dist < traceLen ; dist += via_spacing ){
                     //Keep iterating through segments until it's time to place a via
-                    while( cumulativeLen + startTrace->GetLength() < dist ){
-                        cumulativeLen += startTrace->GetLength();
-                        printf("start = (%d,%d), end = (%d,%d)\n",startTrace->GetStart().x,startTrace->GetStart().y,startTrace->GetEnd().x,startTrace->GetEnd().y);
-                        startTrace = startTrace->Next();
+                    while( cumulativeLen + GetLineLength( tracePath[pathIdx], tracePath[pathIdx + 1] ) < dist ){
+                        cumulativeLen += GetLineLength( tracePath[pathIdx], tracePath[pathIdx + 1] );
+                        pathIdx++;
                     }
 
-                    wxPoint traceVector = startTrace->GetStart() - startTrace->GetEnd();
-
-                    printf("traceVector = (%d, %d)\n",traceVector.x, traceVector.y);
+                    wxPoint traceVector = tracePath[pathIdx + 1] - tracePath[pathIdx];
 
                     //The next vias to place are within this segment
                     double distAlongTrack = dist - cumulativeLen;
@@ -1241,7 +1236,7 @@ void PCB_EDIT_FRAME::Process_Special_Functions( wxCommandEvent& event )
                         wxPoint viaCoord( (int)(distAlongTrack), standoff_multiplier*via_standoff );
                         
                         RotatePoint( &viaCoord, -ArcTangente( traceVector.y, traceVector.x ) );
-                        viaCoord += startTrace->GetEnd();
+                        viaCoord += tracePath[pathIdx];
 
                         VIA *new_via = new VIA( GetBoard() );
                         new_via->SetState( NET_LOCKED, true );
@@ -1252,12 +1247,15 @@ void PCB_EDIT_FRAME::Process_Special_Functions( wxCommandEvent& event )
                         GetBoard()->Add( new_via );
 
                         //Lastly check to make sure via passes DRC
-                        //if( m_drc->DrcBlind( new_via, GetBoard()->m_Track ) == BAD_DRC ){
-                        //    GetBoard()->Delete( new_via );
-                        //}
+                        if( m_drc->DrcBlind( new_via, GetBoard()->m_Track ) == BAD_DRC ){
+                            GetBoard()->Delete( new_via );
+                        } else {
+                            SaveCopyInUndoList( new_via, UR_NEW );
+                        }
                     }
                 }
                 m_canvas->Refresh();
+                OnModify();
             }
             
         }
