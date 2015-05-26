@@ -1923,6 +1923,7 @@ TRACK* BOARD::MarkTrace( TRACK*  aTrace, int* aCount,
          * of the flagged list
          */
         TRACK* next;
+        full_len = firstTrack->GetLength();
 
         for( TRACK* track = firstTrack->Next(); track; track = next )
         {

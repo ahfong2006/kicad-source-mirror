@@ -568,9 +568,9 @@ void PCB_EDIT_FRAME::createPopupMenuForTracks( TRACK* Track, wxMenu* PopMenu )
                 AddMenuItem( PopMenu, ID_POPUP_PCB_BREAK_TRACK,
                              _( "Break Track" ), KiBitmap( break_line_xpm ) );
 
-                AddMenuItem( PopMenu, ID_POPUP_PCB_PLACE_NET_SHIELDING,
-                             _( "Place Net Shielding Vias" ), KiBitmap( break_line_xpm ) );
             }
+            AddMenuItem( PopMenu, ID_POPUP_PCB_PLACE_NET_SHIELDING,
+                         _( "Place Net Shielding Vias" ), KiBitmap( break_line_xpm ) );
         }
 
         AddMenuItem( PopMenu, ID_POPUP_PCB_SELECT_CU_LAYER,

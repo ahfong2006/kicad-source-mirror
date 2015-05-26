@@ -28,10 +28,12 @@
 // Include the wxFormBuider header base:
 #include <vector>
 #include <dialog_net_via_shielding_base.h>
+#include <class_board.h>
 
 class DIALOG_NET_VIA_SHIELDING : public DIALOG_NET_VIA_SHIELDING_BASE
 {
 private:
+    BOARD *m_board;
 
     int& m_shieldingNetCode;
     int& m_viaStandoff;

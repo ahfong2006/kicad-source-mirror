@@ -47,13 +47,14 @@ DIALOG_NET_VIA_SHIELDING::DIALOG_NET_VIA_SHIELDING( PCB_BASE_FRAME* aParent, int
     m_drillUnit->SetLabelText( GetAbbreviatedUnitsLabel( g_UserUnit ) );
 
     // tabbing goes through the entries in sequence
-    m_standoffEntry->MoveAfterInTabOrder( m_shieldingNetEntry );
+    m_standoffEntry->MoveAfterInTabOrder( m_netSelection );
     m_spacingEntry->MoveAfterInTabOrder( m_standoffEntry );
     m_diameterEntry->MoveAfterInTabOrder( m_spacingEntry );
     m_drillEntry->MoveAfterInTabOrder( m_diameterEntry );
 
     wxArrayString   listNetName;
-    m_Parent->GetBoard()->SortedNetnamesList( listNetName, m_NetSortingByPadCount );
+    m_board = aParent->GetBoard();
+    m_board->SortedNetnamesList( listNetName, false );
     m_netSelection->Clear();
     m_netSelection->InsertItems( listNetName, 0 );
     m_netSelection->SetSelection( 0 );
@@ -83,7 +84,7 @@ void DIALOG_NET_VIA_SHIELDING::OnCancelClick( wxCommandEvent& event )
 
 void DIALOG_NET_VIA_SHIELDING::OnOkClick( wxCommandEvent& event )
 {
-    m_shieldingNetCode = m_Parent->GetBoard()->FindNet( m_netSelection->GetString( m_netSelection->GetSelection() ) );
+    m_shieldingNetCode = m_board->GetBoard()->FindNet( m_netSelection->GetString( m_netSelection->GetSelection() ) )->GetNet();
     m_viaStandoff = ValueFromTextCtrl( *m_standoffEntry );
     m_viaSpacing = ValueFromTextCtrl( *m_spacingEntry );
     m_viaDiameter = ValueFromTextCtrl( *m_diameterEntry );

@@ -1222,21 +1222,26 @@ void PCB_EDIT_FRAME::Process_Special_Functions( wxCommandEvent& event )
                 double traceLen;
                 TRACK *startTrace = GetBoard()->MarkTrace(track, &numSegments, &traceLen, NULL, true );
                 double cumulativeLen = 0.0;
+                printf("numSegments = %d, traceLen = %f\n",numSegments, traceLen);
                 for( double dist = 0.0; dist < traceLen; dist += via_spacing ){
                     //Keep iterating through segments until it's time to place a via
                     while( cumulativeLen + startTrace->GetLength() < dist ){
-                        cumulativelen += startTrace->GetLength();
+                        cumulativeLen += startTrace->GetLength();
+                        printf("start = (%d,%d), end = (%d,%d)\n",startTrace->GetStart().x,startTrace->GetStart().y,startTrace->GetEnd().x,startTrace->GetEnd().y);
                         startTrace = startTrace->Next();
                     }
+
+                    wxPoint traceVector = startTrace->GetStart() - startTrace->GetEnd();
+
+                    printf("traceVector = (%d, %d)\n",traceVector.x, traceVector.y);
 
                     //The next vias to place are within this segment
                     double distAlongTrack = dist - cumulativeLen;
                     for(int standoff_multiplier = -1; standoff_multiplier <= 1; standoff_multiplier += 2){
-                        wxPoint viaCoord( (int)distAlongTrack, standoff_multiplier*via_standoff );
+                        wxPoint viaCoord( (int)(distAlongTrack), standoff_multiplier*via_standoff );
                         
-                        wxPoint traceVector = startTrace->GetEnd() - startTrace->GetStart();
-                        RotatePoint( &viaCoord, ArcTangente( traceVector.y, traceVector.x );
-                        viaCoord += startTrace->GetStart();
+                        RotatePoint( &viaCoord, -ArcTangente( traceVector.y, traceVector.x ) );
+                        viaCoord += startTrace->GetEnd();
 
                         VIA *new_via = new VIA( GetBoard() );
                         new_via->SetState( NET_LOCKED, true );
@@ -1247,9 +1252,9 @@ void PCB_EDIT_FRAME::Process_Special_Functions( wxCommandEvent& event )
                         GetBoard()->Add( new_via );
 
                         //Lastly check to make sure via passes DRC
-                        if( m_drc->DrcBlind( new_via, GetBoard()->m_Track ) == BAD_DRC ){
-                            GetBoard()->Delete( new_via );
-                        }
+                        //if( m_drc->DrcBlind( new_via, GetBoard()->m_Track ) == BAD_DRC ){
+                        //    GetBoard()->Delete( new_via );
+                        //}
                     }
                 }
                 m_canvas->Refresh();
