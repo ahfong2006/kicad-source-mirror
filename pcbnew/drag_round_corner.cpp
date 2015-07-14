@@ -192,6 +192,15 @@ void PCB_EDIT_FRAME::Start_DragRoundCorner( TRACK* aTrack, wxDC* aDC )
 
     TRACK *next_segment = (diag & STARTPOINT) ? aTrack->GetTrack( GetBoard()->m_Track, NULL, ENDPOINT_START, true, false ) :
                                                 aTrack->GetTrack( GetBoard()->m_Track, NULL, ENDPOINT_END, true, false );
+
+    //Swap the connecting segment's start and end point in case two ends (or starts) are connected together
+    STATUS_FLAGS next_segment_diag = next_segment->IsPointOnEnds( GetCrossHairPosition(), -1 );
+    if( next_segment_diag == diag ) {
+        wxPoint new_end = next_segment->GetStart();
+        next_segment->SetStart( next_segment->GetEnd() );
+        next_segment->SetEnd( new_end );
+    }
+
     //TODO: Put some error checking in here...
     //Re-order the two converging tracks if we're selecting the startpoint
     s_FirstSegment = (diag & STARTPOINT) ? next_segment : aTrack;
