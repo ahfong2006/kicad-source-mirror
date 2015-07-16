@@ -582,7 +582,7 @@ void EXCELLON_WRITER::WriteEXCELLONHeader()
 void EXCELLON_WRITER::WriteEXCELLONEndOfFile()
 {
     //add if minimal here
-    fputs( "T0\nM30\n", m_file );
+    fputs( "M30\n", m_file );
     fclose( m_file );
 }
 
