@@ -927,7 +927,7 @@ static void initializePlotter( PLOTTER *aPlotter, BOARD * aBoard,
                            aPlotOpts->GetMirror() );
 
     // has meaning only for gerber plotter. Must be called only after SetViewport
-    aPlotter->SetGerberCoordinatesFormat( aPlotOpts->GetGerberPrecision() );
+    aPlotter->SetGerberCoordinatesFormat( aPlotOpts->GetGerberPrecision() , aPlotOpts->GetGerberUseInches() );
 
     aPlotter->SetDefaultLineWidth( aPlotOpts->GetLineWidth() );
     aPlotter->SetCreator( wxT( "PCBNEW" ) );

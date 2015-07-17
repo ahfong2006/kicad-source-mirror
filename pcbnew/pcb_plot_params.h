@@ -103,6 +103,9 @@ private:
     /// 5 is the minimal value for professional boards.
     int         m_gerberPrecision;
 
+    /// Force plotting to use inches
+    bool        m_useGerberInches;
+
     /// Plot gerbers using auxiliary (drill) origin instead of page coordinates
     bool        m_useAuxOrigin;
 
@@ -203,6 +206,9 @@ public:
 
     void        SetPlotPadsOnSilkLayer( bool aFlag ) { m_plotPadsOnSilkLayer = aFlag; }
     bool        GetPlotPadsOnSilkLayer() const { return m_plotPadsOnSilkLayer; }
+
+    void        SetGerberUseInches( bool aVal ) { m_useGerberInches = aVal; }
+    bool        GetGerberUseInches() const { return m_useGerberInches; }
 
     void        SetPlotInvisibleText( bool aFlag ) { m_plotInvisibleText = aFlag; }
     bool        GetPlotInvisibleText() const { return m_plotInvisibleText; }

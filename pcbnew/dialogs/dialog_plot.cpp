@@ -169,6 +169,7 @@ void DIALOG_PLOT::Init_Dialog()
 
     // Gerber precision for coordinates
     m_rbGerberFormat->SetSelection( m_plotOpts.GetGerberPrecision() == 5 ? 0 : 1 );
+    m_rbGerberUnits->SetSelection( m_plotOpts.GetGerberUseInches() ? 1 : 0 );
 
     // Option for excluding contents of "Edges Pcb" layer
     m_excludeEdgeLayerOpt->SetValue( m_plotOpts.GetExcludeEdgeLayer() );
@@ -676,6 +677,7 @@ void DIALOG_PLOT::applyPlotSettings()
     tempOptions.SetUseGerberExtensions( m_useGerberExtensions->GetValue() );
     tempOptions.SetUseGerberAttributes( m_useGerberAttributes->GetValue() );
     tempOptions.SetGerberPrecision( m_rbGerberFormat->GetSelection() == 0 ? 5 : 6 );
+    tempOptions.SetGerberUseInches( m_rbGerberUnits->GetSelection() == 1 );
 
     LSET selectedLayers;
 

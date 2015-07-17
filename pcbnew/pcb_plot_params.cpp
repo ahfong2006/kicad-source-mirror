@@ -84,6 +84,7 @@ PCB_PLOT_PARAMS::PCB_PLOT_PARAMS() :
 {
     m_useGerberExtensions  = false;
     m_useGerberAttributes  = false;
+    m_useGerberInches      = false;
     m_gerberPrecision      = gbrDefaultPrecision;
     m_excludeEdgeLayer     = true;
     m_lineWidth            = g_DrawDefaultLineThickness;
@@ -228,6 +229,8 @@ bool PCB_PLOT_PARAMS::operator==( const PCB_PLOT_PARAMS &aPcbPlotParams ) const
     if( m_useGerberAttributes != aPcbPlotParams.m_useGerberAttributes )
         return false;
     if( m_gerberPrecision != aPcbPlotParams.m_gerberPrecision )
+        return false;
+    if( m_useGerberInches != aPcbPlotParams.m_useGerberInches )
         return false;
     if( m_excludeEdgeLayer != aPcbPlotParams.m_excludeEdgeLayer )
         return false;
