@@ -102,20 +102,20 @@
                         <property name="name">bSizer12</property>
                         <property name="orient">wxVERTICAL</property>
                         <property name="permission">none</property>
-                        <object class="sizeritem" expanded="0">
+                        <object class="sizeritem" expanded="1">
                             <property name="border">5</property>
                             <property name="flag">wxEXPAND</property>
                             <property name="proportion">0</property>
-                            <object class="wxBoxSizer" expanded="0">
+                            <object class="wxBoxSizer" expanded="1">
                                 <property name="minimum_size"></property>
                                 <property name="name">bSizer26</property>
                                 <property name="orient">wxHORIZONTAL</property>
                                 <property name="permission">none</property>
-                                <object class="sizeritem" expanded="0">
+                                <object class="sizeritem" expanded="1">
                                     <property name="border">5</property>
                                     <property name="flag">wxEXPAND|wxRIGHT|wxLEFT</property>
                                     <property name="proportion">0</property>
-                                    <object class="wxBoxSizer" expanded="0">
+                                    <object class="wxBoxSizer" expanded="1">
                                         <property name="minimum_size"></property>
                                         <property name="name">bSizer27</property>
                                         <property name="orient">wxVERTICAL</property>
@@ -3046,7 +3046,7 @@
                                                         <event name="OnMouseEvents"></event>
                                                         <event name="OnMouseWheel"></event>
                                                         <event name="OnPaint"></event>
-                                                        <event name="OnRadioBox"></event>
+                                                        <event name="OnRadioBox">SetGerberUnits</event>
                                                         <event name="OnRightDClick"></event>
                                                         <event name="OnRightDown"></event>
                                                         <event name="OnRightUp"></event>

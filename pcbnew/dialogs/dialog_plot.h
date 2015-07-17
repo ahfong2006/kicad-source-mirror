@@ -66,6 +66,7 @@ private:
     void        OnRightClick( wxMouseEvent& event );
     void        OnPopUpLayers( wxCommandEvent& event );
     void        SetPlotFormat( wxCommandEvent& event );
+    void        SetGerberUnits( wxCommandEvent& event );
     void        OnSetScaleOpt( wxCommandEvent& event );
     void        CreateDrillFile( wxCommandEvent& event );
 

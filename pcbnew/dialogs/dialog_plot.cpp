@@ -521,6 +521,22 @@ void DIALOG_PLOT::SetPlotFormat( wxCommandEvent& event )
     m_MainSizer->SetSizeHints( this );
 }
 
+// Change format 2<-->4 depending on imperial or metric unit choice
+void DIALOG_PLOT::SetGerberUnits( wxCommandEvent& event )
+{
+    if( m_rbGerberUnits->GetSelection() == 1 ) //Imperial
+    {
+        m_rbGerberFormat->SetString( 0, "3.5" );
+        m_rbGerberFormat->SetString( 1, "3.6" );
+    }
+    else //Metric
+    {
+        m_rbGerberFormat->SetString( 0, "4.5" );
+        m_rbGerberFormat->SetString( 1, "4.6" );
+    }
+}
+
+
 
 // A helper function to "clip" aValue between aMin and aMax
 // and write result in * aResult
