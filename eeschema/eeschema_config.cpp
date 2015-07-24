@@ -478,10 +478,7 @@ bool SCH_EDIT_FRAME::LoadProjectFile()
 
 void SCH_EDIT_FRAME::SaveProjectSettings( bool aAskForSave )
 {
-    PROJECT&        prj = Prj();
-    wxFileName      fn = g_RootSheet->GetScreen()->GetFileName();  //ConfigFileName
-
-    fn.SetExt( ProjectFileExtension );
+    wxFileName      fn = Prj().GetProjectFullName();
 
     if( !IsWritable( fn ) )
         return;
@@ -489,8 +486,8 @@ void SCH_EDIT_FRAME::SaveProjectSettings( bool aAskForSave )
     if( aAskForSave )
     {
         wxFileDialog dlg( this, _( "Save Project File" ),
-                          fn.GetPath(), fn.GetFullPath(),
-                          ProjectFileWildcard, wxFD_SAVE );
+                          fn.GetPath(), fn.GetFullName(),
+                          ProjectFileWildcard, wxFD_SAVE | wxFD_CHANGE_DIR );
 
         if( dlg.ShowModal() == wxID_CANCEL )
             return;
@@ -498,7 +495,9 @@ void SCH_EDIT_FRAME::SaveProjectSettings( bool aAskForSave )
         fn = dlg.GetPath();
     }
 
-    prj.ConfigSave( Kiface().KifaceSearch(), GROUP_SCH_EDITOR, GetProjectFileParametersList() );
+    wxString pro_name = fn.GetFullPath();
+
+    Prj().ConfigSave( Kiface().KifaceSearch(), GROUP_SCH_EDITOR, GetProjectFileParametersList(), pro_name );
 }
 
 

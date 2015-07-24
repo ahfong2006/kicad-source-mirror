@@ -62,7 +62,7 @@ void SCH_EDIT_FRAME::PlotSchematic( wxCommandEvent& event )
 
     // save project config if the prj config has changed:
     if( dlg.PrjConfigChanged() )
-        SaveProjectSettings( true );
+        SaveProjectSettings( false );
 }
 
 
@@ -194,7 +194,18 @@ void DIALOG_PLOT_SCHEMATIC::OnOutputDirectoryBrowseClicked( wxCommandEvent& even
                           _( "Plot Output Directory" ), wxOK | wxICON_ERROR );
     }
 
-    m_outputDirectoryName->SetValue( dirName.GetFullPath() );
+    path = dirName.GetFullPath();
+
+    m_outputDirectoryName->SetValue( path );
+
+    // Mark config as changed if a new path has been selected
+    path.Replace( '\\', '/' );
+
+    if(  m_parent->GetPlotDirectoryName() != path )
+        m_configChanged = true;
+
+    m_parent->SetPlotDirectoryName( path );
+
 }
 
 PlotFormat DIALOG_PLOT_SCHEMATIC::GetPlotFileFormat()
@@ -230,16 +241,6 @@ void DIALOG_PLOT_SCHEMATIC::getPlotOptions()
 
     m_pageSizeSelect    = m_PaperSizeOption->GetSelection();
     SetDefaultLineThickness( ValueFromTextCtrl( *m_DefaultLineSizeCtrl ) );
-
-    // Plot directory
-    wxString path = m_outputDirectoryName->GetValue();
-    path.Replace( '\\', '/' );
-
-    if(  m_parent->GetPlotDirectoryName() != path )
-        m_configChanged = true;
-
-    m_parent->SetPlotDirectoryName( path );
-
 }
 
 
