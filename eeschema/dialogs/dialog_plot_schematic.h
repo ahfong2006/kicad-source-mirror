@@ -84,6 +84,8 @@ private:
      */
     void OnOutputDirectoryBrowseClicked( wxCommandEvent& event );
 
+    void OnOutputDirectoryChanged( wxCommandEvent& event );
+
     PlotFormat GetPlotFileFormat();
 
     bool getPlotFrameRef() { return m_PlotFrameRefOpt->GetValue(); }

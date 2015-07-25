@@ -194,9 +194,12 @@ void DIALOG_PLOT_SCHEMATIC::OnOutputDirectoryBrowseClicked( wxCommandEvent& even
                           _( "Plot Output Directory" ), wxOK | wxICON_ERROR );
     }
 
-    path = dirName.GetFullPath();
+    m_outputDirectoryName->SetValue( dirName.GetFullPath() );
+}
 
-    m_outputDirectoryName->SetValue( path );
+void DIALOG_PLOT_SCHEMATIC::OnOutputDirectoryChanged( wxCommandEvent& event )
+{
+    wxString path = m_outputDirectoryName->GetValue();
 
     // Mark config as changed if a new path has been selected
     path.Replace( '\\', '/' );
