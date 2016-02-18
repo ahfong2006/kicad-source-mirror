@@ -210,6 +210,7 @@ set( PCBNEW_CLASS_SRCS
     ${PCBNEW_DIALOGS}
     ${PCBNEW_IMPORT_DXF}
     ${PCBNEW_EXPORTERS}
+    drag_round_corner.cpp
     dragsegm.cpp
     drc.cpp
     drc_clearance_test_functions.cpp

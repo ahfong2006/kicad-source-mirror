@@ -126,6 +126,7 @@ void PCB_EDIT_FRAME::Process_Special_Functions( wxCommandEvent& event )
     case ID_POPUP_PCB_SELECT_LAYER_PAIR:
     case ID_POPUP_PCB_SELECT_NO_CU_LAYER:
     case ID_POPUP_PCB_MOVE_TRACK_NODE:
+    case ID_POPUP_PCB_CREATE_ROUND_CORNER:
     case ID_POPUP_PCB_MOVE_TEXTEPCB_REQUEST:
     case ID_POPUP_PCB_DRAG_TRACK_SEGMENT_KEEP_SLOPE:
     case ID_POPUP_PCB_DRAG_TRACK_SEGMENT:
@@ -1176,6 +1177,11 @@ void PCB_EDIT_FRAME::Process_Special_Functions( wxCommandEvent& event )
     case ID_POPUP_PCB_MOVE_TRACK_NODE:
         m_canvas->MoveCursorToCrossHair();
         StartMoveOneNodeOrSegment( (TRACK*) GetScreen()->GetCurItem(), &dc, id );
+        break;
+
+    case ID_POPUP_PCB_CREATE_ROUND_CORNER:
+        m_canvas->MoveCursorToCrossHair();
+        Start_DragRoundCorner( (TRACK*) GetScreen()->GetCurItem(), &dc );
         break;
 
     case ID_POPUP_PCB_DRAG_TRACK_SEGMENT_KEEP_SLOPE:
