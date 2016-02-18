@@ -149,6 +149,8 @@ set( PCBNEW_DIALOGS
     dialogs/dialog_track_via_size_base.cpp
     dialogs/dialog_update_pcb_base.cpp
     dialogs/dialog_update_pcb.cpp
+    dialogs/dialog_zone_via_stitching_base.cpp
+    dialogs/dialog_zone_via_stitching.cpp
     footprint_wizard.cpp
     footprint_wizard_frame.cpp
     dialogs/dialog_footprint_wizard_list_base.cpp

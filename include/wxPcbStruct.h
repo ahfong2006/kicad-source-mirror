@@ -181,6 +181,7 @@ protected:
     virtual bool isAutoSaveRequired() const;
 
     void shieldNet( wxDC* aDC, int netCode, int viaStandoff, int viaSpacing, int viaDiameter, int viaDrill );
+    void stitchZone( wxDC* aDC, ZONE_CONTAINER* aZone, int viaSpacing, int viaDiameter, int viaDrill );
 
     /**
      * Function duplicateZone

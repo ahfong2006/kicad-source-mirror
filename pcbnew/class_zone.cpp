@@ -565,6 +565,19 @@ bool ZONE_CONTAINER::HitTestFilledArea( const wxPoint& aRefPos ) const
     return m_FilledPolysList.Contains( VECTOR2I( aRefPos.x, aRefPos.y ) );
 }
 
+bool ZONE_CONTAINER::HitTestFilledAreaWithClearance( const wxPoint& aRefPos, int minDist )
+{
+    // Make a copy of the filled zone first
+    SHAPE_POLY_SET m_FilledPolysList_temp = m_FilledPolysList;
+    m_FilledPolysList_temp.Simplify( SHAPE_POLY_SET::PM_FAST );
+
+    // Now shrink it by minDist to create an area which represents the valid positions
+    m_FilledPolysList_temp.Inflate( -minDist, 1 );
+
+    // Test if the reference position is contained within the set of valid positions
+    return m_FilledPolysList_temp.Contains( VECTOR2I( aRefPos.x, aRefPos.y ), -1 );
+}
+
 
 void ZONE_CONTAINER::GetMsgPanelInfo( std::vector< MSG_PANEL_ITEM >& aList )
 {

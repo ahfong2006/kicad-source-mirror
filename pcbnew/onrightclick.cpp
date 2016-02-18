@@ -764,6 +764,9 @@ void PCB_EDIT_FRAME::createPopUpMenuForZones( ZONE_CONTAINER* edge_zone, wxMenu*
             AddMenuItem( zones_menu, ID_POPUP_PCB_FILL_ZONE, _( "Fill Zone" ),
                          KiBitmap( fill_zone_xpm ) );
 
+        AddMenuItem( zones_menu, ID_POPUP_PCB_ZONE_VIA_STITCH,
+                     _( "Apply Via Stitching to Zone" ), KiBitmap( zone_duplicate_xpm ) );
+
         if( !edge_zone->GetFilledPolysList().IsEmpty() )
         {
             AddMenuItem( zones_menu, ID_POPUP_PCB_REMOVE_FILLED_AREAS_IN_CURRENT_ZONE,

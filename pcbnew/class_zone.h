@@ -248,6 +248,8 @@ public:
      */
     bool HitTestFilledArea( const wxPoint& aRefPos ) const;
 
+    bool HitTestFilledAreaWithClearance( const wxPoint& aRefPos, int minDist );
+
      /**
      * Function TransformSolidAreasShapesToPolygonSet
      * Convert solid areas full shapes to polygon set
