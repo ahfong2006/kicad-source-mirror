@@ -569,6 +569,7 @@ bool ZONE_CONTAINER::HitTestFilledAreaWithClearance( const wxPoint& aRefPos, int
 {
     // Make a copy of the filled zone first
     SHAPE_POLY_SET m_FilledPolysList_temp = m_FilledPolysList;
+    m_FilledPolysList_temp.Simplify( SHAPE_POLY_SET::PM_FAST );
 
     // Now shrink it by minDist to create an area which represents the valid positions
     m_FilledPolysList_temp.Inflate( -minDist, 1 );
