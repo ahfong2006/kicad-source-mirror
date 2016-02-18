@@ -248,7 +248,6 @@ public:
      */
     bool HitTestFilledArea( const wxPoint& aRefPos ) const;
 
-    bool SegmentIsInternalZoneEdge( unsigned firstPointIdx, unsigned secondPointIdx );
     bool HitTestFilledAreaWithClearance( const wxPoint& aRefPos, int minDist );
 
      /**
