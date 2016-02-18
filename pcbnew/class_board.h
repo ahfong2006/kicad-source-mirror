@@ -214,7 +214,7 @@ private:
      * @param aLayerSet The allowed layers for segments to search.
      * @param aList The track list to fill with points of flagged segments.
      */
-    void chainMarkedSegments( wxPoint aPosition, const LSET& aLayerSet, TRACK_PTRS* aList );
+    void chainMarkedSegments( wxPoint aPosition, const LSET& aLayerSet, TRACK_PTRS* aList, std::vector< wxPoint > *chainPoints );
 
 public:
     static inline bool ClassOf( const EDA_ITEM* aItem )
@@ -1340,6 +1340,8 @@ public:
      */
     TRACK* MarkTrace( TRACK* aTrace, int* aCount, double* aTraceLength,
                       double* aInPackageLength, bool aReorder );
+
+    std::vector< wxPoint > GetTracePath( TRACK *aTrace, double *aTraceLen);
 
     /**
      * Function GetFootprint

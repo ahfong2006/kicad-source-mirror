@@ -180,6 +180,8 @@ protected:
      */
     virtual bool isAutoSaveRequired() const;
 
+    void shieldNet( wxDC* aDC, int netCode, int viaStandoff, int viaSpacing, int viaDiameter, int viaDrill );
+
     /**
      * Function duplicateZone
      * duplicates the given zone.

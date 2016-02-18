@@ -181,8 +181,55 @@ void BOARD::Move( const wxPoint& aMoveVector )        // overload
     Visit( &inspector, &aMoveVector, top_level_board_stuff );
 }
 
+std::vector< wxPoint > BOARD::GetTracePath( TRACK *aTrace, double *aTraceLen=NULL )
+{
+    std::vector< wxPoint > retPathVector;
+    LSET layerMask = aTrace->GetLayerSet();
+    TRACK_PTRS trackList;
 
-void BOARD::chainMarkedSegments( wxPoint aPosition, const LSET& aLayerMask, TRACK_PTRS* aList )
+    //Start by clearing busy bit of all traces
+    for( TRACK* track = m_Track; track; track = track->Next() )
+        track->SetState( BUSY, false );
+
+    //Current trace needs to be flagged as busy
+    aTrace->SetState( BUSY, true );
+
+    trackList.push_back(aTrace);
+    chainMarkedSegments( aTrace->GetStart(), layerMask, &trackList, &retPathVector );
+    TRACK *lastTrack = trackList[ trackList.size()-1 ];
+
+    //Re-clear busy bit of all traces so that we can run chainMarkedSegments from the beginning
+    for( TRACK* track = m_Track; track; track = track->Next() )
+        track->SetState( BUSY, false );
+
+    //Last track needs to be flagged as busy so we know which direction to go
+    lastTrack->SetState( BUSY, true );
+
+    //Redo the chain, starting from the newfound start point.  Ignore vias.
+    if( retPathVector.size() <= 1 ){
+        retPathVector.push_back(lastTrack->GetStart());
+        retPathVector.push_back(lastTrack->GetEnd());
+    } else {
+        wxPoint startPosition = retPathVector[ retPathVector.size() - 2 ];
+        retPathVector.clear();
+        retPathVector.push_back(startPosition);
+        chainMarkedSegments( startPosition, layerMask, NULL, &retPathVector );
+    }
+
+    //Calculate the total trace length if it's requested
+    if( aTraceLen )
+    {
+        *aTraceLen = 0;
+        for( unsigned ii = 1; ii < retPathVector.size(); ii++)
+        {
+            *aTraceLen += GetLineLength( retPathVector[ii-1], retPathVector[ii] );
+        }
+    }
+
+    return retPathVector;
+}
+
+void BOARD::chainMarkedSegments( wxPoint aPosition, const LSET& aLayerMask, TRACK_PTRS* aList=NULL, std::vector< wxPoint > *chainPoints=NULL )
 {
     TRACK*  segment;            // The current segment being analyzed.
     TRACK*  via;                // The via identified, eventually destroy
@@ -208,6 +255,9 @@ void BOARD::chainMarkedSegments( wxPoint aPosition, const LSET& aLayerMask, TRAC
      */
     for( ; ; )
     {
+        if( chainPoints )
+            chainPoints->push_back(aPosition);
+
         if( GetPad( aPosition, layer_set ) != NULL )
             return;
 
@@ -224,7 +274,8 @@ void BOARD::chainMarkedSegments( wxPoint aPosition, const LSET& aLayerMask, TRAC
         {
             layer_set = via->GetLayerSet();
 
-            aList->push_back( via );
+            if( aList )
+                aList->push_back( via );
         }
 
         /* Now we search all segments connected to point aPosition
@@ -280,8 +331,9 @@ void BOARD::chainMarkedSegments( wxPoint aPosition, const LSET& aLayerMask, TRAC
 
             layer_set = candidate->GetLayerSet();
 
-            // flag this item and push it in list of selected items
-            aList->push_back( candidate );
+            /* flag this item an push it in list of selected items */
+            if( aList )
+                aList->push_back( candidate );
             candidate->SetState( BUSY, true );
         }
         else
@@ -1923,6 +1975,7 @@ TRACK* BOARD::MarkTrace( TRACK*  aTrace, int* aCount,
          * of the flagged list
          */
         TRACK* next;
+        full_len = firstTrack->GetLength();
 
         for( TRACK* track = firstTrack->Next(); track; track = next )
         {

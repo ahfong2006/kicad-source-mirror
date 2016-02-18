@@ -57,6 +57,7 @@
 
 #include <dialog_move_exact.h>
 #include <dialog_create_array.h>
+#include <dialog_net_via_shielding.h>
 
 #include <tool/tool_manager.h>
 #include <tools/common_actions.h>
@@ -133,6 +134,7 @@ void PCB_EDIT_FRAME::Process_Special_Functions( wxCommandEvent& event )
     case ID_POPUP_PCB_MOVE_TRACK_SEGMENT:
     case ID_POPUP_PCB_PLACE_MOVED_TRACK_NODE:
     case ID_POPUP_PCB_BREAK_TRACK:
+    case ID_POPUP_PCB_PLACE_NET_SHIELDING:
     case ID_POPUP_PCB_EDIT_NET:
     case ID_POPUP_PCB_EDIT_TRACK:
     case ID_POPUP_PCB_EDIT_TRACKSEG:
@@ -1255,6 +1257,61 @@ void PCB_EDIT_FRAME::Process_Special_Functions( wxCommandEvent& event )
 
             SaveCopyInUndoList( newItemsList, UR_NEW );
             m_canvas->Refresh();
+
+    case ID_POPUP_PCB_PLACE_NET_SHIELDING:
+        m_canvas->MoveCursorToCrossHair();
+        {
+            TRACK*  track = (TRACK*) GetScreen()->GetCurItem();
+            wxPoint pos   = GetCrossHairPosition();
+
+            //Open dialog to get parameters for shielding
+            int shielding_net_code, via_standoff, via_spacing, via_diameter, via_drill;
+            DIALOG_NET_VIA_SHIELDING dialog( this, shielding_net_code, via_standoff, via_spacing, via_diameter, via_drill );
+            int ret = dialog.ShowModal();
+
+            if( ret == wxID_OK ){
+                //Figure out where the start and end are to the selected track
+                double traceLen;
+                std::vector< wxPoint > tracePath = GetBoard()->GetTracePath( track, &traceLen );
+                double cumulativeLen = 0.0;
+                int pathIdx = 0;
+                for( double dist = 0.0; dist < traceLen ; dist += via_spacing ){
+                    //Keep iterating through segments until it's time to place a via
+                    while( cumulativeLen + GetLineLength( tracePath[pathIdx], tracePath[pathIdx + 1] ) < dist ){
+                        cumulativeLen += GetLineLength( tracePath[pathIdx], tracePath[pathIdx + 1] );
+                        pathIdx++;
+                    }
+
+                    wxPoint traceVector = tracePath[pathIdx + 1] - tracePath[pathIdx];
+
+                    //The next vias to place are within this segment
+                    double distAlongTrack = dist - cumulativeLen;
+                    for(int standoff_multiplier = -1; standoff_multiplier <= 1; standoff_multiplier += 2){
+                        wxPoint viaCoord( (int)(distAlongTrack), standoff_multiplier*via_standoff );
+                        
+                        RotatePoint( &viaCoord, -ArcTangente( traceVector.y, traceVector.x ) );
+                        viaCoord += tracePath[pathIdx];
+
+                        VIA *new_via = new VIA( GetBoard() );
+                        new_via->SetState( NET_LOCKED, true );
+                        new_via->SetPosition( viaCoord );
+                        new_via->SetDrill( via_drill );
+                        new_via->SetWidth( via_diameter );
+                        new_via->SetNetCode( shielding_net_code );
+                        GetBoard()->Add( new_via );
+
+                        //Lastly check to make sure via passes DRC
+                        if( m_drc->DrcBlind( new_via, GetBoard()->m_Track ) == BAD_DRC ){
+                            GetBoard()->Delete( new_via );
+                        } else {
+                            SaveCopyInUndoList( new_via, UR_NEW );
+                        }
+                    }
+                }
+                m_canvas->Refresh();
+                OnModify();
+            }
+            
         }
         break;
 
