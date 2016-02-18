@@ -1282,6 +1282,9 @@ void PCB_EDIT_FRAME::Process_Special_Functions( wxCommandEvent& event )
             SaveCopyInUndoList( newItemsList, UR_NEW );
             m_canvas->Refresh();
 
+        } 
+        break;
+
     case ID_POPUP_PCB_PLACE_NET_SHIELDING:
         m_canvas->MoveCursorToCrossHair();
         {
